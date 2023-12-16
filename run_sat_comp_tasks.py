@@ -34,13 +34,13 @@ def generate_kissat_scripts(output_dir, time_limit_s, kissat_path, logs):
             file.write(f"{kissat_path} --time={time_limit_s} {file_path} >> {log_file_path}")
 
 
-def run_kissat_scripts(scripts_output_dir, time_limit_s, script_prefix):
+def run_kissat_scripts(scripts_output_dir, time_limit_s, script_prefix, cpus=1, mem=10):
     hours = time_limit_s / 60 / 60 + 1
     jobs = []
     for file_name in os.listdir(scripts_output_dir):
         if script_prefix in file_name:
             scripts_path = scripts_output_dir / file_name
-            command = ["sbatch", "--cpus-per-task=1", "--mem=10G", f"--time={hours}:00:00", scripts_path]
+            command = ["sbatch", f"--cpus-per-task={cpus}", f"--mem={mem}G", f"--time={hours}:00:00", scripts_path]
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, text=True)
 
             pattern = re.compile(r'Submitted batch job (\d+)')
@@ -51,15 +51,17 @@ def run_kissat_scripts(scripts_output_dir, time_limit_s, script_prefix):
             else:
                 raise Exception("Job ID not found in the output.")
 
-            jobs.append((job_id, file_name))
+            jobs.append((job_id, file_name, cpus, mem, hours))
     return jobs
 
 
 def print_log(jobs_log, logs, log_prefix):
     log = logs / log_prefix
     with open(log, "w") as log_file:
-        for job_id, file_name in jobs_log:
-            log_file.write(f"{job_id}:{file_name}\n")
+        log_file.write(f"job_id:file_name:cpus:mem:hours")
+
+        for job_id, file_name, cpus, mem, hours in jobs_log:
+            log_file.write(f"{job_id}:{file_name}:{cpus}:{mem}:{hours}\n")
 
 
 @click.command()

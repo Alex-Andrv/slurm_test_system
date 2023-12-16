@@ -5,3 +5,4 @@ channels:
 dependencies:
   - python=3.11.6
   - click=8.1.7
+  - requests=2.31.0
