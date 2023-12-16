@@ -7,6 +7,22 @@ import click
 
 from downloader import download_sat_comp_if_not_exist
 
+def clean_directory(directory):
+    try:
+        subprocess.run(["rm", "-r", directory])
+        print(f"Все файлы и папки в {directory} удалены успешно.")
+    except Exception as e:
+        print(f"Произошла ошибка при удалении файлов и папок: {e}")
+
+def create_directory(directory_path):
+    try:
+        # Пытаемся создать директорию
+        os.makedirs(directory_path)
+        print(f"Директория {directory_path} успешно создана.")
+    except FileExistsError:
+        print(f"Директория {directory_path} уже существует.")
+    except Exception as e:
+        print(f"Произошла ошибка при создании директории: {e}")
 
 def generate_kissat_scripts(output_dir, time_limit_s, kissat_path, logs):
     for file_name in os.listdir(output_dir):
@@ -60,6 +76,8 @@ def print_log(jobs_log, logs, log_prefix):
 def run_experiments(uri_task_path: Path, kissat_path: Path, multithreading_solver_path: Path,
                     time_limit_s: int, task_output_dir: Path, scripts_output_dir: Path, logs: Path):
     download_sat_comp_if_not_exist(uri_task_path, task_output_dir)
+    clean_directory(scripts_output_dir)
+    create_directory(scripts_output_dir)
     generate_kissat_scripts(scripts_output_dir, time_limit_s, kissat_path, logs)
     jobs_log = run_kissat_scripts(scripts_output_dir, time_limit_s, "kissat")
     print_log(jobs_log, logs, "kissat")
