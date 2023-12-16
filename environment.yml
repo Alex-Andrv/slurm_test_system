@@ -1,1 +1,7 @@
-
+name: slurm_test_system
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11.6
+  - click=8.1.7
