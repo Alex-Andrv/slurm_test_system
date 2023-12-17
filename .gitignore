@@ -1,2 +1,7 @@
 /sta_comp_2023/
 /credentials.json
+/scripts_output_dir/
+/logs/
+/kissat.log
+/slurm-*
+/multithreading_solver.log
