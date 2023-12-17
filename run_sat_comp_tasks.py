@@ -29,8 +29,10 @@ def create_directory(directory_path):
         print(f"Произошла ошибка при создании директории: {e}")
 
 
-def generate_kissat_scripts(task_output_dir, script_output_dir, time_limit_s, kissat_path, logs):
-    for file_name in os.listdir(task_output_dir):
+def generate_kissat_scripts(task_output_dir, script_output_dir, time_limit_s, kissat_path, logs, max_task):
+    for i, file_name in enumerate(os.listdir(task_output_dir)):
+        if i > max_task:
+            break
         file_path = task_output_dir / file_name
         log_file_path = logs / f"kissat_{file_name}.log"
         script = script_output_dir / f"kissat_{file_name}_with_limit_{time_limit_s}.sh"
@@ -43,9 +45,11 @@ def generate_kissat_scripts(task_output_dir, script_output_dir, time_limit_s, ki
 def generate_multithreading_solver_scripts(task_output_dir, script_output_dir, time_limit_s,
                                            multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
-                                           multithreading_solver_redis_dump):
+                                           multithreading_solver_redis_dump, max_task):
     base_port = 6381
     for i, file_name in enumerate(os.listdir(task_output_dir)):
+        if i > max_task:
+            break
         file_path = task_output_dir / file_name
         log_file_path = logs / f"multithreading_solver_{file_name}.log"
         multithreading_solver_tmp_dir = multithreading_solver_tmp / file_name
@@ -130,9 +134,11 @@ def cancel_jobs(log_file):
               help='logs dir')
 @click.option('--multithreading-solver-rubbish-dir',
               type=click.Path(exists=False), default="/mnt/tank/scratch/aandreev/")
+@click.option('--max-task',
+              type=int, default=-400)
 def run_experiments(uri_task_path: str, kissat_path: str, multithreading_solver_path: str,
                     time_limit_s: int, task_output_dir: str, scripts_output_dir: str, logs: str,
-                    multithreading_solver_rubbish_dir: str):
+                    multithreading_solver_rubbish_dir: str, max_task):
     uri_task_path = Path(uri_task_path)
     kissat_path = Path(kissat_path)
     multithreading_solver_path = Path(multithreading_solver_path)
@@ -162,14 +168,14 @@ def run_experiments(uri_task_path: str, kissat_path: str, multithreading_solver_
     if os.path.exists(multithreading_solver_experiments_log):
         cancel_jobs(multithreading_solver_experiments_log)
 
-    # generate_kissat_scripts(task_output_dir, scripts_output_dir, time_limit_s, kissat_path, logs)
-    # jobs_log = run_scripts(scripts_output_dir, time_limit_s, "kissat", cpus=1, mem=10)
-    # print_log(jobs_log, "kissat")
+    generate_kissat_scripts(task_output_dir, scripts_output_dir, time_limit_s, kissat_path, logs, max_task)
+    jobs_log = run_scripts(scripts_output_dir, time_limit_s, "kissat", cpus=1, mem=10)
+    print_log(jobs_log, "kissat")
 
     generate_multithreading_solver_scripts(task_output_dir, scripts_output_dir,
                                            time_limit_s, multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
-                                           multithreading_solver_redis_dump)
+                                           multithreading_solver_redis_dump, max_task)
 
     jobs_log = run_scripts(scripts_output_dir, time_limit_s, "multithreading_solver", cpus=6, mem=20)
     print_log(jobs_log, "multithreading_solver")
