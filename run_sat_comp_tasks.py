@@ -121,8 +121,8 @@ def cancel_jobs(log_file):
 
 @click.command()
 @click.argument('task_list', required=True, type=click.Path(exists=True))
-@click.option('--kissat-path', required=True, type=click.Path(exists=True))
-@click.option('--multithreading-solver-path', required=True, type=click.Path(exists=True))
+@click.option('--kissat-path', type=click.Path(exists=True), default='/nfs/home/aandreev/kissat/build/kissat')
+@click.option('--multithreading-solver-path', type=click.Path(exists=True), default='/nfs/home/aandreev/distributed_backdoors_search/start_solve.py')
 @click.option('--time-limit-s', type=int, default=5000, help='time limit for solver')
 @click.option('--task-dir', type=str, default="sta_comp_2023",
               help='sat comp 2023 task output dir')
