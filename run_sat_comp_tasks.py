@@ -5,8 +5,6 @@ from pathlib import Path
 
 import click
 
-from downloader import download_sat_comp_if_not_exist
-
 CURRENT_DIR = Path(os.path.abspath(os.path.dirname(__file__)))
 
 
@@ -29,45 +27,45 @@ def create_directory(directory_path):
         print(f"Произошла ошибка при создании директории: {e}")
 
 
-def generate_kissat_scripts(task_output_dir, script_output_dir, time_limit_s, kissat_path, logs, max_task):
-    for i, file_name in enumerate(os.listdir(task_output_dir)):
-        if i > max_task:
-            break
-        file_path = task_output_dir / file_name
-        log_file_path = logs / f"kissat_{file_name}.log"
-        script = script_output_dir / f"kissat_{file_name}_with_limit_{time_limit_s}.sh"
-        with open(script, "w") as file:
-            file.write("#!/bin/bash -i \n")
-            file.write("source activate multithreading_solver \n")
-            file.write(f"{kissat_path} --time={time_limit_s} {file_path} >> {log_file_path}")
+def generate_kissat_scripts(task_list, task_dir, script_output_dir, time_limit_s, kissat_path, logs):
+    with open(task_list, 'r') as tasks_file:
+        for i, file_name in enumerate(tasks_file):
+            file_name = file_name.strip()
+            file_path = task_dir / file_name
+            log_file_path = logs / f"kissat_{file_name}.log"
+            script = script_output_dir / f"kissat_{file_name}_with_limit_{time_limit_s}.sh"
+            with open(script, "w") as file:
+                file.write("#!/bin/bash -i \n")
+                file.write("source activate multithreading_solver \n")
+                file.write(f"{kissat_path} --time={time_limit_s} {file_path} >> {log_file_path}")
 
 
-def generate_multithreading_solver_scripts(task_output_dir, script_output_dir, time_limit_s,
+def generate_multithreading_solver_scripts(task_list, task_dir, script_output_dir, time_limit_s,
                                            multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
-                                           multithreading_solver_redis_dump, max_task):
+                                           multithreading_solver_redis_dump):
     base_port = 6381
-    for i, file_name in enumerate(os.listdir(task_output_dir)):
-        if i > max_task:
-            break
-        file_path = task_output_dir / file_name
-        log_file_path = logs / f"multithreading_solver_{file_name}.log"
-        multithreading_solver_tmp_dir = multithreading_solver_tmp / file_name
-        multithreading_solver_log_dir = multithreading_solver_log / file_name
-        redis_dir = multithreading_solver_redis_dump / file_name
-        create_directory(redis_dir)
-        redis_port = base_port + i
-        script = script_output_dir / f"multithreading_solver_{file_name}_with_limit_{time_limit_s}_with_redis_port_{redis_port}.sh"
-        with open(script, "w") as file:
-            file.write("#!/bin/bash -i \n")
-            file.write("source activate multithreading_solver \n")
-            file.write("export LD_LIBRARY_PATH=~/hiredis-1.2.0/install/lib:$LD_LIBRARY_PATH\n")
-            file.write(f"cd {multithreading_solver_path.parent}\n")
-            file.write(f"redis-server redis.conf --port {redis_port} --dir {redis_dir} &\n")
-            file.write("PID=$!\n")
-            file.write(
-                f"python {multithreading_solver_path} {file_path} --max-learning 15 --redis-port {redis_port} --max-buffer-size 10000 -tmp {multithreading_solver_tmp_dir} --log-dir {multithreading_solver_log_dir} -n 5 -er 1 -er 1 -er 1 -er 1 -er 1 -es 8 -es 10 -es 12 -es 14 -es 14 -ei 800 -ei 1000 -ei 1200 -ei 2000 -ei 3000 -c 0 -c 0 -c 0 -c 0 -c 0 >> {log_file_path} \n")
-            file.write("kill -9 $PID\n")
+    with open(task_list, 'r') as tasks_file:
+        for i, file_name in enumerate(tasks_file):
+            file_name = file_name.strip()
+            file_path = task_dir / file_name
+            log_file_path = logs / f"multithreading_solver_{file_name}.log"
+            multithreading_solver_tmp_dir = multithreading_solver_tmp / file_name
+            multithreading_solver_log_dir = multithreading_solver_log / file_name
+            redis_dir = multithreading_solver_redis_dump / file_name
+            create_directory(redis_dir)
+            redis_port = base_port + i
+            script = script_output_dir / f"multithreading_solver_{file_name}_with_limit_{time_limit_s}_with_redis_port_{redis_port}.sh"
+            with open(script, "w") as file:
+                file.write("#!/bin/bash -i \n")
+                file.write("source activate multithreading_solver \n")
+                file.write("export LD_LIBRARY_PATH=~/hiredis-1.2.0/install/lib:$LD_LIBRARY_PATH\n")
+                file.write(f"cd {multithreading_solver_path.parent}\n")
+                file.write(f"redis-server redis.conf --port {redis_port} --dir {redis_dir} &\n")
+                file.write("PID=$!\n")
+                file.write(
+                    f"python {multithreading_solver_path} {file_path} --max-learning 15 --redis-port {redis_port} --max-buffer-size 10000 -tmp {multithreading_solver_tmp_dir} --log-dir {multithreading_solver_log_dir} -n 5 -er 1 -er 1 -er 1 -er 1 -er 1 -es 8 -es 10 -es 12 -es 14 -es 14 -ei 800 -ei 1000 -ei 1200 -ei 2000 -ei 3000 -c 0 -c 0 -c 0 -c 0 -c 0 >> {log_file_path} \n")
+                file.write("kill -9 $PID\n")
 
 
 def run_scripts(scripts_output_dir, time_limit_s, script_prefix, cpus=1, mem=10):
@@ -122,11 +120,11 @@ def cancel_jobs(log_file):
 
 
 @click.command()
-@click.argument('uri_task_path', required=True, type=click.Path(exists=True))
+@click.argument('task_list', required=True, type=click.Path(exists=True))
 @click.option('--kissat-path', required=True, type=click.Path(exists=True))
 @click.option('--multithreading-solver-path', required=True, type=click.Path(exists=True))
 @click.option('--time-limit-s', type=int, default=5000, help='time limit for solver')
-@click.option('--task-output-dir', type=str, default="sta_comp_2023",
+@click.option('--task-dir', type=str, default="sta_comp_2023",
               help='sat comp 2023 task output dir')
 @click.option('--scripts-output-dir', type=str, default="scripts_output_dir",
               help='output dir for run scripts')
@@ -134,23 +132,19 @@ def cancel_jobs(log_file):
               help='logs dir')
 @click.option('--multithreading-solver-rubbish-dir',
               type=click.Path(exists=False), default="/mnt/tank/scratch/aandreev/")
-@click.option('--max-task',
-              type=int, default=-400)
-def run_experiments(uri_task_path: str, kissat_path: str, multithreading_solver_path: str,
-                    time_limit_s: int, task_output_dir: str, scripts_output_dir: str, logs: str,
-                    multithreading_solver_rubbish_dir: str, max_task):
-    uri_task_path = Path(uri_task_path)
+def run_experiments(task_list: str, kissat_path: str, multithreading_solver_path: str,
+                    time_limit_s: int, task_dir: str, scripts_output_dir: str, logs: str,
+                    multithreading_solver_rubbish_dir: str):
+    task_list = CURRENT_DIR / Path(task_list)
     kissat_path = Path(kissat_path)
     multithreading_solver_path = Path(multithreading_solver_path)
-    task_output_dir = CURRENT_DIR / task_output_dir
+    task_dir = CURRENT_DIR / task_dir
     scripts_output_dir = CURRENT_DIR / scripts_output_dir
     logs = CURRENT_DIR / logs
     multithreading_solver_rubbish_dir = Path(multithreading_solver_rubbish_dir)
     multithreading_solver_tmp = multithreading_solver_rubbish_dir / "tmp"
     multithreading_solver_log = multithreading_solver_rubbish_dir / "log"
     multithreading_solver_redis_dump = multithreading_solver_rubbish_dir / "redis_dump"
-
-    download_sat_comp_if_not_exist(uri_task_path, task_output_dir)
 
     clean_directory(scripts_output_dir)
     create_directory(scripts_output_dir)
@@ -168,16 +162,16 @@ def run_experiments(uri_task_path: str, kissat_path: str, multithreading_solver_
     if os.path.exists(multithreading_solver_experiments_log):
         cancel_jobs(multithreading_solver_experiments_log)
 
-    generate_kissat_scripts(task_output_dir, scripts_output_dir, time_limit_s, kissat_path, logs, max_task)
+    generate_kissat_scripts(task_list, task_dir, scripts_output_dir, time_limit_s, kissat_path, logs)
     jobs_log = run_scripts(scripts_output_dir, time_limit_s, "kissat", cpus=1, mem=10)
     print_log(jobs_log, "kissat")
 
-    generate_multithreading_solver_scripts(task_output_dir, scripts_output_dir,
+    generate_multithreading_solver_scripts(task_list, task_dir, scripts_output_dir,
                                            time_limit_s, multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
-                                           multithreading_solver_redis_dump, max_task)
+                                           multithreading_solver_redis_dump)
 
-    jobs_log = run_scripts(scripts_output_dir, time_limit_s, "multithreading_solver", cpus=6, mem=20)
+    jobs_log = run_scripts(scripts_output_dir, time_limit_s, "multithreading_solver", cpus=7, mem=20)
     print_log(jobs_log, "multithreading_solver")
 
 

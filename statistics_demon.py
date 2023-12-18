@@ -67,9 +67,9 @@ def get_kissat_task_info(task, logs, time_limit_s):
             line = log_file.readline()
             if "SATISFIABLE" in line:
                 status = "SATISFIABLE"
-            elif "UNSATISFIABLE" in line:
+            if "UNSATISFIABLE" in line:
                 status = "UNSATISFIABLE"
-            elif "process-time" in line:
+            if "process-time" in line:
                 process_time = parse_process_time_line(line)
             if not line:
                 if process_time is None:
@@ -95,9 +95,9 @@ def get_multithreading_solver_task_info(task, logs, time_limit_s):
             line = log_file.readline()
             if "SAT" in line:
                 status = "SATISFIABLE"
-            elif "UNSAT" in line:
+            if "UNSAT" in line:
                 status = "UNSATISFIABLE"
-            elif "CPU time" in line:
+            if "CPU time" in line:
                 process_time = parse_cpu_time_line(line)
             if not line:
                 if process_time is None:
