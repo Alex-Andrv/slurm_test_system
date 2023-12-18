@@ -101,7 +101,9 @@ def get_multithreading_solver_task_info(task, logs, time_limit_s):
                 process_time = parse_cpu_time_line(line)
             if not line:
                 if process_time is None:
-                    raise Exception("process_time is None")
+                    task_copy["status"] = "ERROR process_time is None"
+                    task_copy["process_time"] = 0
+                    return task_copy
                 if status == "UNDEFINED" and int(process_time) + 100 < time_limit_s:
                     raise Exception("UNDEFINED is unexpected")
                 task_copy["status"] = status
