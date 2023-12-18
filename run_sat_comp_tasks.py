@@ -122,7 +122,8 @@ def cancel_jobs(log_file):
 @click.command()
 @click.argument('task_list', required=True, type=click.Path(exists=True))
 @click.option('--kissat-path', type=click.Path(exists=True), default='/nfs/home/aandreev/kissat/build/kissat')
-@click.option('--multithreading-solver-path', type=click.Path(exists=True), default='/nfs/home/aandreev/distributed_backdoors_search/start_solve.py')
+@click.option('--multithreading-solver-path', type=click.Path(exists=True),
+              default='/nfs/home/aandreev/distributed_backdoors_search/start_solve.py')
 @click.option('--time-limit-s', type=int, default=5000, help='time limit for solver')
 @click.option('--task-dir', type=str, default="sta_comp_2023",
               help='sat comp 2023 task output dir')
@@ -162,10 +163,6 @@ def run_experiments(task_list: str, kissat_path: str, multithreading_solver_path
     if os.path.exists(multithreading_solver_experiments_log):
         cancel_jobs(multithreading_solver_experiments_log)
 
-    generate_kissat_scripts(task_list, task_dir, scripts_output_dir, time_limit_s, kissat_path, logs)
-    jobs_log = run_scripts(scripts_output_dir, time_limit_s, "kissat", cpus=1, mem=10)
-    print_log(jobs_log, "kissat")
-
     generate_multithreading_solver_scripts(task_list, task_dir, scripts_output_dir,
                                            time_limit_s, multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
@@ -173,6 +170,10 @@ def run_experiments(task_list: str, kissat_path: str, multithreading_solver_path
 
     jobs_log = run_scripts(scripts_output_dir, time_limit_s, "multithreading_solver", cpus=7, mem=20)
     print_log(jobs_log, "multithreading_solver")
+
+    generate_kissat_scripts(task_list, task_dir, scripts_output_dir, time_limit_s, kissat_path, logs)
+    jobs_log = run_scripts(scripts_output_dir, time_limit_s, "kissat", cpus=1, mem=10)
+    print_log(jobs_log, "kissat")
 
 
 if __name__ == "__main__":
