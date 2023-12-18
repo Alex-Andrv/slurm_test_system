@@ -76,7 +76,7 @@ def run_scripts(scripts_output_dir, time_limit_s, script_prefix, cpus=1, mem=10)
         if script_prefix in file_name:
             scripts_path = scripts_output_dir / file_name
             command = ["sbatch", f"--cpus-per-task={cpus}", f"--mem={mem}G", f"--time={hours}:00:00",
-                       f"--priority={priority}", scripts_path]
+                       f"--priority={priority}", f"--nodelist=orthrus-1,orthrus-2", scripts_path]
 
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, text=True)
 
