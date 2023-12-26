@@ -40,7 +40,7 @@ def generate_kissat_scripts(task_list, task_dir, script_output_dir, time_limit_s
                 file.write(f"{kissat_path} --time={time_limit_s} {file_path} >> {log_file_path}")
 
 
-def generate_multithreading_solver_scripts(task_list, task_dir, script_output_dir, time_limit_s,
+def generate_multithreading_solver_scripts(task_list, derive_bin: Path, search_bin: Path, task_dir, script_output_dir, time_limit_s,
                                            multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
                                            multithreading_solver_redis_dump):
@@ -121,6 +121,8 @@ def cancel_jobs(log_file):
 
 @click.command()
 @click.argument('task_list', required=True, type=click.Path(exists=True))
+@click.option("--derive-bin", "derive_bin", required=True, type=click.Path(exists=True), help="Path to derive exe file")
+@click.option("--search-bin", "search_bin", required=True, type=click.Path(exists=True), help="Path to search exe file")
 @click.option('--kissat-path', type=click.Path(exists=True), default='/nfs/home/aandreev/kissat/build/kissat')
 @click.option('--multithreading-solver-path', type=click.Path(exists=True),
               default='/nfs/home/aandreev/distributed_backdoors_search/start_solve.py')
@@ -133,10 +135,12 @@ def cancel_jobs(log_file):
               help='logs dir')
 @click.option('--multithreading-solver-rubbish-dir',
               type=click.Path(exists=False), default="/mnt/tank/scratch/aandreev/")
-def run_experiments(task_list: str, kissat_path: str, multithreading_solver_path: str,
+def run_experiments(task_list: str, derive_bin, search_bin, kissat_path: str, multithreading_solver_path: str,
                     time_limit_s: int, task_dir: str, scripts_output_dir: str, logs: str,
                     multithreading_solver_rubbish_dir: str):
     task_list = CURRENT_DIR / Path(task_list)
+    derive_bin = Path(os.path.abspath(derive_bin))
+    search_bin = Path(os.path.abspath(search_bin))
     kissat_path = Path(kissat_path)
     multithreading_solver_path = Path(multithreading_solver_path)
     task_dir = CURRENT_DIR / task_dir
@@ -163,7 +167,7 @@ def run_experiments(task_list: str, kissat_path: str, multithreading_solver_path
     if os.path.exists(multithreading_solver_experiments_log):
         cancel_jobs(multithreading_solver_experiments_log)
 
-    generate_multithreading_solver_scripts(task_list, task_dir, scripts_output_dir,
+    generate_multithreading_solver_scripts(task_list, derive_bin, search_bin, task_dir, scripts_output_dir,
                                            time_limit_s, multithreading_solver_path, logs,
                                            multithreading_solver_tmp, multithreading_solver_log,
                                            multithreading_solver_redis_dump)
