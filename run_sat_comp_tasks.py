@@ -64,7 +64,7 @@ def generate_multithreading_solver_scripts(task_list, task_dir, script_output_di
                 file.write(f"redis-server redis.conf --port {redis_port} --dir {redis_dir} &\n")
                 file.write("PID=$!\n")
                 file.write(
-                    f"python {multithreading_solver_path} {file_path} --max-learning 15 --redis-port {redis_port} --max-buffer-size 10000 -tmp {multithreading_solver_tmp_dir} --log-dir {multithreading_solver_log_dir} -n 5 -er 1 -er 1 -er 1 -er 1 -er 1 -es 8 -es 10 -es 12 -es 14 -es 14 -ei 800 -ei 1000 -ei 1200 -ei 2000 -ei 3000 -c 0 -c 0 -c 0 -c 0 -c 0 >> {log_file_path} \n")
+                    f"python {multithreading_solver_path} {file_path} --derive-bin --search-bin --max-learning 15 --redis-port {redis_port} --max-buffer-size 10000 -tmp {multithreading_solver_tmp_dir} --log-dir {multithreading_solver_log_dir} -n 5 -er 1 -er 1 -er 1 -er 1 -er 1 -es 8 -es 10 -es 12 -es 14 -es 14 -ei 800 -ei 1000 -ei 1200 -ei 2000 -ei 3000 -c 0 -c 0 -c 0 -c 0 -c 0 >> {log_file_path} \n")
                 file.write("kill -9 $PID\n")
 
 
