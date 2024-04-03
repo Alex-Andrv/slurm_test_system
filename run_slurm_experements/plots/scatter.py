@@ -5,9 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 references = map(Path, [
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical.csv",
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical.csv",
 
-    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-1.9.3.csv"
+    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-1.9.3.csv"
 ])
 
 statistics = map(Path, [
@@ -24,16 +24,20 @@ statistics = map(Path, [
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_21.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_22.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_23.0.csv",
-    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_24.0.csv",
+    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_24.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_25.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_26.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_VBS.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_25.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_26.0.csv",
-    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_27.0.csv"
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_34.0.csv",
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv"
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_27.0.csv",
+    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_cadical-1.9.3.csv",
+    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_interleave_24.0.csv",
+
+
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_34.0.csv",
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv"
 ])
 
 def parse_table(reference_df, exp_name):

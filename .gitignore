@@ -5,3 +5,8 @@
 /kissat.log
 /slurm-*
 /multithreading_solver.log
+*slurm-*.out
+*.json*
+*.csv*
+*.pdf*
+

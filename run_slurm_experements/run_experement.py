@@ -84,7 +84,7 @@ def run_scripts(scripts, time_limit_s, slurm_log, cpus=1, mem=None, node="orthru
 
     for scripts_path in scripts:
         file_name = scripts_path.stem.split('_')[-1]
-        command = ["sbatch", "-p as", f"--cpus-per-task={cpus}",
+        command = ["sbatch", "-p", "as", f"--cpus-per-task={cpus}",
                    f"--mem={mem[file_name]}G", f"--time={hours}:{minutes}:{seconds}",
                    "-w", f"{node}", "--qos=high_cpu", "--qos=high_mem", "--qos=unlim_cpu",
                    f"--output={slurm_log}/slurm-%j.txt", f"--error={slurm_log}/slurm-%j.txt",

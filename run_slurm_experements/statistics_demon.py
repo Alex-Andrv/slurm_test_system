@@ -20,7 +20,8 @@ def read_log(log_path: Path):
             job_id, file_name, cpus, mem, seconds = line.split(":")
 
             file_name = Path(file_name).stem
-
+            # if (job_id in log):
+            #     print("gg")
             log[job_id] = {"job_id": job_id,
                            "file_name": file_name,
                            "cpus": cpus,
@@ -56,6 +57,12 @@ def parse_process_time_line(line):
     return int(float(words[-2]))
 
 
+# c process-time:                     1h 23m 20s            4999.99 seconds
+# def parse_process_kissat_time_line(line):
+#     words = line.split()
+#     return int(float(words[-2]))
+
+
 def get_cadical_info(task, experiment, csv_file):
     file_name = task['file_name'][len(experiment['name']) + 1:]
     log_file_path = Path(experiment['log_dir']) / experiment['name'] / 'stdout' / file_name
@@ -86,31 +93,44 @@ def get_cadical_info(task, experiment, csv_file):
     return task_copy
 
 
-def time_string_to_seconds(time_string):
-    match = re.match(r'(\d+)m(\d+\.\d+)s', time_string)
-    if match:
-        minutes = float(match.group(1))
-        seconds = float(match.group(2))
-        total_seconds = minutes * 60 + seconds
-        return total_seconds
-    else:
-        return None
-
-def get_interleave_info(task, experiment, csv_file):
+def get_kissat_info(task, experiment, csv_file):
     file_name = task['file_name'][len(experiment['name']) + 1:]
-    log_file_path = Path(experiment['log_dir']) / experiment['name'] / 'stderr' / file_name
+    log_file_path = Path(experiment['log_dir']) / experiment['name'] / 'stdout' / file_name
     task_copy = deepcopy(task)
-    slurm_file = f"./slurm-{task['job_id']}.out"
-    task_copy = deepcopy(task)
-    status = "UNDEFINED/UNSAT"
+    status = "UNDEFINED"
     process_time = None
-    units_value = None
-    binary_value = None
-    total_derive_0 = 0
-    total_derive = 0
-    units_value = 0
-    binary_value = 0
-    other = 0
+    with open(log_file_path, 'r') as log_file:
+        while True:
+            line = log_file.readline()
+            if "s SATISFIABLE" in line:
+                status = "SATISFIABLE"
+            if "s UNSATISFIABLE" in line:
+                status = "UNSATISFIABLE"
+            if "c process-time:" in line:
+                process_time = parse_process_time_line(line)
+            if "out_of_memory" in line:
+                status = "out_of_memory"
+            if not line:
+                if process_time is None:
+                    status = "OOM"
+                    process_time = task['seconds']
+                task_copy["status"] = status
+                task_copy["process_time"] = process_time
+                break
+    with open(csv_file, "a") as csv:
+        csv.write(
+            f"{task_copy['job_id']},{task_copy['file_name']},{task_copy['status']},{task_copy['process_time']}\n")
+    return task_copy
+
+
+def get_sbva_cadical_info(task, experiment, csv_file):
+    file_name = task['file_name'][len(experiment['name']) + 1:]
+    log_file_path = Path(experiment['log_dir']) / experiment['name'] / 'stdout' / file_name
+    task_copy = deepcopy(task)
+    status = "UNDEFINED"
+    process_time = None
+
+    slurm_file = f"./slurm-{task['job_id']}.out"
     with open(slurm_file, 'r') as slurm:
         for line in slurm:
             if "real" in line:
@@ -127,44 +147,129 @@ def get_interleave_info(task, experiment, csv_file):
                     process_time = 5100
                 break
 
+    if process_time is None:
+        raise Exception("some error")
+
     with open(log_file_path, 'r') as log_file:
-        for line in log_file:
-            if "Message:  " in line:
-                if "SAT" in line:
-                    status = "SAT"
-                else:
-                    status = f"ERROR: {line}"
-                process_time = 5100
+        while True:
+            line = log_file.readline()
+            if "SATISFIABLE" in line:
+                status = "SATISFIABLE"
+            if "UNSATISFIABLE" in line:
+                status = "UNSATISFIABLE"
+            if not line:
+                if process_time is None:
+                    status = "OOM"
+                    process_time = task['seconds']
+                task_copy["status"] = status
+                task_copy["process_time"] = process_time
                 break
-            if ' SAT' in line:
-                if process_time != 5100:
-                    status = "SAT"
-                else:
-                    if status != "SLURM_TIME_LIMIT" and status != "SAT!!!!":
-                        raise Exception()
-                    status = "SAT!!!!"
-            if "UNSAT" in line:
-                if process_time == 5100:
-                    print(f"JOB_ID = {log_file_path}")
-            if "Hard task" in line:
-                status = "HARD"
-            if "Found strong backdoor" in line:
-                status = "Found strong backdoor"
-            if "So far derived" in line:
-                regex_pattern = r"\((\d+) units, (\d+) binary, (\d+) other\)"
+    with open(csv_file, "a") as csv:
+        csv.write(
+            f"{task_copy['job_id']},{task_copy['file_name']},{task_copy['status']},{task_copy['process_time']}\n")
+    return task_copy
 
-                match = re.search(regex_pattern, line)
 
-                if match:
-                    units_value = match.group(1)
-                    binary_value = match.group(2)
-                    other = match.group(3)
+def time_string_to_seconds(time_string):
+    match = re.match(r'(\d+)m(\d+\.\d+)s', time_string)
+    if match:
+        minutes = float(match.group(1))
+        seconds = float(match.group(2))
+        total_seconds = minutes * 60 + seconds
+        return total_seconds
+    else:
+        return None
+
+
+def read_model(model):
+    with open(model, 'r') as model:
+        first_line = model.readline()
+        assert ("s SATISFIABLE" in first_line), "Invalide format"
+        second_line = model.readline().split()
+        second_line = list(map(int, second_line[1:-1]))
+        return second_line
+
+
+def get_interleave_info(task, experiment, csv_file):
+    file_name = task['file_name'][len(experiment['name']) + 1:]
+    log_file_path = Path(experiment['log_dir']) / experiment['name'] / 'stderr' / file_name
+    task_copy = deepcopy(task)
+    slurm_file = f"./slurm-{task['job_id']}.out"
+    task_copy = deepcopy(task)
+    status = "UNDEFINED/UNSAT"
+    process_time = None
+    units_value = None
+    binary_value = None
+    total_derive_0 = 0
+    total_derive = 0
+    units_value = 0
+    binary_value = 0
+    other = 0
+    is_error = False
+    with open(slurm_file, 'r') as slurm:
+        for line in slurm:
+            if "real" in line:
+                process_time = time_string_to_seconds(line.split()[1])
+            if "error" in line:
+                if "out-of-memory handler" in line:
+                    status = "OUT_OF_MEMORY"
+                    process_time = 5100
+                elif "DUE TO TIME LIMIT" in line:
+                    status = "SLURM_TIME_LIMIT"
+                    process_time = 5100
                 else:
-                    print("error")
-            if "Derived 0 new clauses (0 units, 0 binary, 0 other)" in line:
-                total_derive_0 += 1
-            if ("Derived" in line) and ("new" in line):
-                total_derive += 1
+                    status = line
+                    process_time = 5100
+                is_error = True
+                break
+
+
+    if not is_error:
+        with open(log_file_path, 'r') as log_file:
+            for line in log_file:
+                if "Message:  " in line:
+                    if "SAT" in line:
+                        status = f"SAT"
+                    elif "Found strong backdoor" in line:
+                        continue
+                    else:
+                        status = f"ERROR: {line}"
+                        process_time = 5100
+                        break
+                # if ' SAT' in line:
+                #     if process_time != 5100:
+                #         status = "SAT"
+                #     else:
+                #         if status != "SLURM_TIME_LIMIT" and status != "SAT!!!!":
+                #             raise Exception()
+                #         status = "SAT!!!!"
+                if "User time (seconds):" in line:
+                    process_time = int(float(line.split()[-1]))
+                if " SAT" in line:
+                    status = f"SAT"
+                if "UNSAT" in line:
+                    if process_time == 5100:
+                        raise Exception(f"JOB_ID = {log_file_path}")
+                # if "Hard task" in line:
+                #     status = "HARD"
+                if "Found strong backdoor" in line:
+                    status = "Found strong backdoor"
+                if "So far derived" in line:
+                    regex_pattern = r"\((\d+) units, (\d+) binary, (\d+) ternary, (\d+) other\)"
+
+                    match = re.search(regex_pattern, line)
+
+                    if match:
+                        units_value = match.group(1)
+                        binary_value = match.group(2)
+                        other = match.group(3)
+                    else:
+                        print("error")
+                if "Derived 0 new clauses (0 units, 0 binary, 0 other)" in line:
+                    total_derive_0 += 1
+                if ("Derived" in line) and ("new" in line):
+                    total_derive += 1
+
     task_copy['units_value'] = units_value
     task_copy['binary_value'] = binary_value
     task_copy['status'] = status
@@ -173,14 +278,33 @@ def get_interleave_info(task, experiment, csv_file):
     task_copy['total_derive_0'] = total_derive_0
     task_copy['all_derive'] = total_derive
 
+    if status == "SAT":
+        print("check")
+        model = Path(experiment['log_dir']) / experiment['name'] / 'stdout' / f"{file_name}_model.txt"
+        units = read_model(model)
+
+        problem = Path("/nfs/home/aandreev/slurm_test_system/sta_comp_2023") / f"{file_name}.cnf"
+        from pysat.formula import CNF
+        cnf = CNF(from_file=problem).clauses
+        for unit in units:
+            cnf.append([unit])
+        from pysat.solvers import Minisat22
+        # if file_name
+        with Minisat22(bootstrap_with=cnf) as m:
+            res = m.solve()
+            if res == False:
+                raise Error("Mast be SAT")
+            else:
+                print("successful SAT")
+
+
+
     with open(csv_file, "a") as csv:
         csv.write(
             f"{task_copy['job_id']},{task_copy['file_name']},{task_copy['status']},{task_copy['process_time']},"
             f"{task_copy['units_value']},{task_copy['binary_value']},{task_copy['other_value']},{task_copy['total_derive_0']},{task_copy['all_derive']},{task_copy['total_derive_0']/task_copy['all_derive'] if task_copy['all_derive'] != 0 else 0}\n")
     return task_copy
 
-def get_sbva_info(task, experiment, csv_file):
-    pass
 
 
 def processed(all_task, processed_task, experiment, csv_file, parse_log):
@@ -216,6 +340,9 @@ def print_header(experiment, statistics):
     elif "cadical" in experiment['solver']:
         with open(statistics_file, 'w') as csv_file:
             csv_file.write("job_id,file_name,status,time\n")
+    elif "kissat" in experiment['solver']:
+        with open(statistics_file, 'w') as csv_file:
+            csv_file.write("job_id,file_name,status,time\n")
     else:
         raise Exception("Undefined solver")
     return statistics_file
@@ -235,23 +362,35 @@ def run_demon(experiments_path: str):
     while True:
         for experiment, all_task, statistics_file, processed_task in zip(experiments, experiments_all_task, experiments_statistics_files, all_processed_task):
             solver = experiment['solver']
-            if "cadical" in solver:
+            if "sbva_interleave" in solver:
+                processed_task.update(
+                    processed(all_task,
+                              processed_task, experiment,
+                              statistics_file, get_interleave_info))
+            elif "sbva_cadical" in solver:
+                processed_task.update(
+                    processed(all_task,
+                              processed_task, experiment,
+                              statistics_file, get_sbva_cadical_info))
+            elif "cadical" in solver:
                 processed_task.update(
                 processed(all_task,
                           processed_task, experiment,
                           statistics_file, get_cadical_info))
+
             elif "interleave" in solver:
                 processed_task.update(
                     processed(all_task,
                               processed_task, experiment,
                               statistics_file, get_interleave_info))
-            elif "sbva" in solver:
+            elif "kissat" in solver:
                 processed_task.update(
                     processed(all_task,
                               processed_task, experiment,
-                              statistics_file, get_sbva_info))
+                              statistics_file, get_kissat_info))
             else:
                 raise Exception(f"Unsupported solver type {solver}")
+        sleep(100)
         sleep(100)
 
 
