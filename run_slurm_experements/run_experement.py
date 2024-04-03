@@ -192,7 +192,7 @@ def get_experiment_mems(mems_file_path):
 @click.command()
 @click.argument('experiment_path', required=True, type=click.Path(exists=True))
 @click.option("--rerun", type=bool,
-              help="Path to derive exe file", default=False)
+              help="rerun experiment", default=False)
 @click.option("--time-limit-s", type=int, default=5100)
 def run_experiments(experiment_path: str, rerun: bool, time_limit_s: int):
     experiment_path = Path(experiment_path)
