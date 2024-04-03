@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "interleave_16.0",
+    "tasks_path": "/nfs/home/aandreev/slurm_test_system/filter.txt",
+    "solver": "interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97",
+    "param": "--backdoor-size 10 --num-iters 10000 --stagnation-limit 1000 --no-freeze --budget-filter 10000 --factor-budget-filter 1.1 --budget-solve 10000 --factor-budget-solve 1.1 --max-product 100000",
+    "log_dir": "/nfs/home/aandreev/slurm_test_system/solvers_log",
+    "scripts_dir": "/nfs/home/aandreev/slurm_test_system/scripts_output_dir",
+    "jobid_dir": "/nfs/home/aandreev/slurm_test_system/jobid",
+    "cpus": 1,
+    "mem": 5,
+    "node": "orthrus-1"
+  }
+}

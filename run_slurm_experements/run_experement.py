@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
+import csv
 
 import click
 
@@ -52,21 +53,41 @@ def generate_solver_script(
             if isinstance(solver_params, list):
                 solver_params = ' '.join(solver_params)
             file.write(
-                f"time {solver_bin} {task_path} {solver_params} > {solver_log_dir_stdout / task_name} 2> {solver_log_dir_stderr / task_name}")
+                f"/usr/bin/time -v {solver_bin} {task_path} {solver_params} > {solver_log_dir_stdout / task_name} 2> {solver_log_dir_stderr / task_name}")
+        scripts_path.append(script)
+    return scripts_path
+
+def generate_interleave_v2_script(
+        solver_bin, solver_params, tasks,
+        solver_log_dir_stderr, solver_log_dir_stdout, script_dir,
+        experiment_name):
+    scripts_path = []
+    for i, (task_name, task_path) in enumerate(tasks):
+        script = script_dir / f"{experiment_name}_{task_name}.sh"
+        with open(script, "w") as file:
+            file.write("#!/bin/bash -i \n")
+            file.write("source activate slurm_test_system \n")
+            if isinstance(solver_params, list):
+                solver_params = ' '.join(solver_params)
+            file.write(
+                f"/usr/bin/time -v {solver_bin} {task_path} {solver_params} --output  {solver_log_dir_stdout / (task_name + '_output.txt')}  > {solver_log_dir_stdout / task_name} 2> {solver_log_dir_stderr / task_name}")
         scripts_path.append(script)
     return scripts_path
 
 
-def run_scripts(scripts, time_limit_s, cpus=1, mem=10, node="orthrus-2"):
+def run_scripts(scripts, time_limit_s, slurm_log, cpus=1, mem=None, node="orthrus-2"):
     hours = time_limit_s // 60 // 60
     minutes = (time_limit_s - hours * 60 * 60) // 60
     seconds = time_limit_s - hours * 60 * 60 - minutes * 60
     jobs = []
+    mem = mem if mem is not None else defaultdict(lambda : 16)
 
     for scripts_path in scripts:
-        command = ["sbatch", f"--cpus-per-task={cpus}",
-                   f"--mem={mem}G", f"--time={hours}:{minutes}:{seconds}",
+        file_name = scripts_path.stem.split('_')[-1]
+        command = ["sbatch", "-p as", f"--cpus-per-task={cpus}",
+                   f"--mem={mem[file_name]}G", f"--time={hours}:{minutes}:{seconds}",
                    "-w", f"{node}", "--qos=high_cpu", "--qos=high_mem", "--qos=unlim_cpu",
+                   f"--output={slurm_log}/slurm-%j.txt", f"--error={slurm_log}/slurm-%j.txt",
                    scripts_path]
 
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, text=True)
@@ -129,12 +150,15 @@ def prepare_directories(experiment):
     solver_log_dir_stdout = solver_log_dir / "stdout"
     script_dir = Path(experiment["scripts_dir"]) / experiment["name"]
     jobid_dir = Path(experiment['jobid_dir'])
+    slurm_log = Path(experiment['slurm_log']) / experiment["name"]
+
 
     create_directory_if_not_exist(solver_log_dir_stderr)
     create_directory_if_not_exist(solver_log_dir_stdout)
     create_directory_if_not_exist(script_dir)
     create_directory_if_not_exist(jobid_dir)
-    return solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir
+    create_directory_if_not_exist(slurm_log)
+    return solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir, slurm_log
 
 
 def get_experiment_tasks(tasks_path):
@@ -150,6 +174,21 @@ def get_experiment_tasks(tasks_path):
     return tasks
 
 
+def get_experiment_mems(mems_file_path):
+    if not os.path.exists(mems_file_path):
+        raise Exception(f"Can't find mems path: {mems_file_path}")
+    mems = {}
+    with open(mems_file_path, newline='', encoding='utf-8') as csvfile:
+        # Создаем объект для чтения CSV
+        reader = csv.DictReader(csvfile)
+
+        # Читаем каждую строку из CSV файла
+        for row in reader:
+            # Добавляем строки в список data
+            mems[row['task']] = row['mem']
+    return mems
+
+
 @click.command()
 @click.argument('experiment_path', required=True, type=click.Path(exists=True))
 @click.option("--rerun", type=bool,
@@ -163,17 +202,18 @@ def run_experiments(experiment_path: str, rerun: bool, time_limit_s: int):
     solvers = read_json_from_file(solvers_path)['solvers_path']
     solver_bin = get_solver_bin(experiment, solvers)
 
-    solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir = prepare_directories(experiment)
+    solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir, slurm_log = prepare_directories(experiment)
     jobid_log_file = jobid_dir / f"{experiment['name']}.csv"
 
     if rerun:
         if os.path.exists(jobid_log_file):
             cancel_jobs(jobid_log_file)
-        # clean_directory(solver_log_dir_stderr)
-        # clean_directory(solver_log_dir_stdout)
+        clean_directory(solver_log_dir_stderr)
+        clean_directory(solver_log_dir_stdout)
+        clean_directory(slurm_log)
         clean_directory(script_dir)
         delete_file(jobid_log_file)
-        solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir = prepare_directories(experiment)
+        solver_log_dir_stderr, solver_log_dir_stdout, script_dir, jobid_dir, slurm_log = prepare_directories(experiment)
         print("All files have been deleted")
     else:
         if os.path.exists(jobid_log_file):
@@ -183,14 +223,21 @@ def run_experiments(experiment_path: str, rerun: bool, time_limit_s: int):
     tasks = get_experiment_tasks(experiment['tasks_path'])
     solver_params = experiment['param']
     experiment_name = experiment['name']
+    mems = get_experiment_mems(experiment['mem'])
 
-    scripts_path = generate_solver_script(
-        solver_bin, solver_params, tasks,
-        solver_log_dir_stderr, solver_log_dir_stdout, script_dir,
-        experiment_name)
+    if "interleave_v2" in experiment['solver']:
+        scripts_path = generate_interleave_v2_script(
+            solver_bin, solver_params, tasks,
+            solver_log_dir_stderr, solver_log_dir_stdout, script_dir,
+            experiment_name)
+    else:
+        scripts_path = generate_solver_script(
+            solver_bin, solver_params, tasks,
+            solver_log_dir_stderr, solver_log_dir_stdout, script_dir,
+            experiment_name)
 
-    jobs_log = run_scripts(scripts_path, time_limit_s,
-                           cpus=experiment['cpus'], mem=experiment['mem'],
+    jobs_log = run_scripts(scripts_path, time_limit_s, slurm_log,
+                           cpus=experiment['cpus'], mem=mems,
                            node=experiment['node'])
 
     print_log(jobs_log, jobid_log_file)

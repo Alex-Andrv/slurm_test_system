@@ -1,0 +1,14 @@
+{
+  "experiment": {
+    "name": "sorts_2.0",
+    "tasks_path": "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/tasks/all_sorts.txt",
+    "solver": "interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97",
+    "param": "--backdoor-size 10 --num-iters 10000 --stagnation-limit 1000 --max-product 10000 --no-freeze --num-conflicts 1000 --use-sorted-filtering --derive-ternary --budget-filter 10000 --factor-budget-filter 1.1 --budget-solve 100000 --factor-budget-solve 1.1 --ban-used --reset-used-vars",
+    "log_dir": "/nfs/home/aandreev/slurm_test_system/solvers_log",
+    "scripts_dir": "/nfs/home/aandreev/slurm_test_system/scripts_output_dir",
+    "jobid_dir": "/nfs/home/aandreev/slurm_test_system/jobid",
+    "cpus": 1,
+    "mem": 5,
+    "node": "meduza-1"
+  }
+}

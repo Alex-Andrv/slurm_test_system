@@ -1,0 +1,10 @@
+{
+  "solvers_path": {
+    "cadical-1.9.3": "/nfs/home/aandreev/cadical-rel-1.9.3/build/cadical",
+    "kissat": "/nfs/home/aandreev/kissat/build/kissat",
+    "interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97": "/nfs/home/aandreev/sat-nexus/bin/interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97",
+    "interleave-aggregate_448368c5e5bee4d7754b9ce78fd25880e1611e97": "/nfs/home/aandreev/sat-nexus/bin/interleave-aggregate_448368c5e5bee4d7754b9ce78fd25880e1611e97",
+    "interleave_73ac4f5a8c489e24e9d104846f694c0719291d6f": "/nfs/home/aandreev/sat-nexus/bin/interleave_73ac4f5a8c489e24e9d104846f694c0719291d6f",
+    "sbva": "/nfs/home/aandreev/SBVA/bin/wrapper.py"
+  }
+}
