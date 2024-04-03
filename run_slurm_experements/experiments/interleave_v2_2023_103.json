@@ -1,14 +1,15 @@
 {
   "experiment": {
-    "name": "interleave_v2_2023_101",
-    "tasks_path": "/nfs/home/aandreev/slurm_test_system/filtered_task",
-    "solver": "interleave_v2_15d11f1a40fd21a28aba015a7ed316d81cd7d520",
-    "param": "--backdoor-size 10 --num-iters 10000 --num-conflicts 1000 --ban-used --reset-used-vars --stagnation-limit 1000   --max-product 10000 --budget-filter 10000 --factor-budget-filter 1.1 --budget-solve 100000 --factor-budget-solve 1.2 --use-sorted-filtering --pool-limit 10000  --max-core-size 0",
+    "name": "interleave_v2_2023_103",
+    "tasks_path": "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/tasks/all_satcomp2023",
+    "solver": "interleave_v2_5aaaf1508c1060691dbf492b266f466b6dc81a5d",
+    "param": "--backdoor-size 10 --num-iters 10000 --num-conflicts 1000 --ban-used --reset-used-vars --stagnation-limit 1000  --max-product 10000 --budget-filter 10000 --factor-budget-filter 1.1 --budget-solve 100000 --factor-budget-solve 1.2 --use-sorted-filtering  --max-core-size 0",
     "log_dir": "/nfs/home/aandreev/solvers_log",
     "scripts_dir": "/nfs/home/aandreev/slurm_test_system/scripts_output_dir",
     "jobid_dir": "/nfs/home/aandreev/slurm_test_system/jobid",
+    "slurm_log": "/nfs/home/aandreev/slurm_log",
     "cpus": 1,
-    "mem": 64,
-    "node": "orthrus-1"
+    "mem": "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/tasks/mem_satcomp2023",
+    "node": "orthrus-2"
   }
 }

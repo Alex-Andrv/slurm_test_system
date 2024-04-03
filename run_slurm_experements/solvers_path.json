@@ -1,10 +1,20 @@
 {
   "solvers_path": {
     "cadical-1.9.3": "/nfs/home/aandreev/cadical-rel-1.9.3/build/cadical",
-    "kissat": "/nfs/home/aandreev/kissat/build/kissat",
+    "cadical-1.9.4": "/nfs/home/aandreev/cadical-rel-1.9.4/build/cadical",
+    "cadical-1.9.5": "/nfs/home/aandreev/cadical-rel-1.9.5/build/cadical",
+    "kissat-3.1.1": "/nfs/home/aandreev/kissat-rel-3.1.1/build/kissat",
     "interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97": "/nfs/home/aandreev/sat-nexus/bin/interleave_448368c5e5bee4d7754b9ce78fd25880e1611e97",
     "interleave-aggregate_448368c5e5bee4d7754b9ce78fd25880e1611e97": "/nfs/home/aandreev/sat-nexus/bin/interleave-aggregate_448368c5e5bee4d7754b9ce78fd25880e1611e97",
     "interleave_73ac4f5a8c489e24e9d104846f694c0719291d6f": "/nfs/home/aandreev/sat-nexus/bin/interleave_73ac4f5a8c489e24e9d104846f694c0719291d6f",
-    "sbva": "/nfs/home/aandreev/SBVA/bin/wrapper.py"
+    "interleave_2891157639735360973060e343145578fdc51878": "/nfs/home/aandreev/sat-nexus/bin/interleave_2891157639735360973060e343145578fdc51878",
+    "interleave_a053643cf8efe538796f78ed1d0ee6bd734ac4c9": "/nfs/home/aandreev/sat-nexus/bin/interleave_a053643cf8efe538796f78ed1d0ee6bd734ac4c9",
+    "interleave_2dee42392f6f44181cb66f8685b549dcdef2c481": "/nfs/home/aandreev/sat-nexus/bin/interleave_2dee42392f6f44181cb66f8685b549dcdef2c481",
+    "interleave_7402c5f2d59f099e8d0396e169abeeed9d8668e9": "/nfs/home/aandreev/sat-nexus/bin/interleave_7402c5f2d59f099e8d0396e169abeeed9d8668e9",
+    "interleave_v2_15d11f1a40fd21a28aba015a7ed316d81cd7d520": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_15d11f1a40fd21a28aba015a7ed316d81cd7d520",
+    "interleave_v2_60e5fe446be95055927322ef892d45de752b3962": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_60e5fe446be95055927322ef892d45de752b3962",
+    "interleave_v2_5aaaf1508c1060691dbf492b266f466b6dc81a5d": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_5aaaf1508c1060691dbf492b266f466b6dc81a5d",
+    "sbva_cadical": "/nfs/home/aandreev/SBVA/bin/wrapper.py",
+    "sbva_interleave": "/nfs/home/aandreev/SBVA/bin/wrapper.py"
   }
 }
