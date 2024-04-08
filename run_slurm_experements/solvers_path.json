@@ -14,6 +14,7 @@
     "interleave_v2_15d11f1a40fd21a28aba015a7ed316d81cd7d520": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_15d11f1a40fd21a28aba015a7ed316d81cd7d520",
     "interleave_v2_60e5fe446be95055927322ef892d45de752b3962": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_60e5fe446be95055927322ef892d45de752b3962",
     "interleave_v2_5aaaf1508c1060691dbf492b266f466b6dc81a5d": "/nfs/home/aandreev/sat-nexus/bin/interleave_v2_5aaaf1508c1060691dbf492b266f466b6dc81a5d",
+    "interleave_v2_ba37fcfa4d25a49003674713bbf4c3f8a463df7a": "/nfs/home/aandreev/backdoor-solver/bin/interleave_v2_ba37fcfa4d25a49003674713bbf4c3f8a463df7a",
     "sbva_cadical": "/nfs/home/aandreev/SBVA/bin/wrapper.py",
     "sbva_interleave": "/nfs/home/aandreev/SBVA/bin/wrapper.py"
   }

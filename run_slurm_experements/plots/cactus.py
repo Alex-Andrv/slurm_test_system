@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 references = map(Path, [
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical.csv",
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-satcomp2023-1.9.3.csv",
+    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-satcomp2023-1.9.5.csv",
 
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sorts_4.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-1.9.3.csv",
@@ -62,12 +62,16 @@ statistics = map(Path, [
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_40.0.csv",
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_41.0.csv",
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_42.0.csv",
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_100.csv",
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_101.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_103.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_102.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_2023_104.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_2023_105.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_109.csv",
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_110.csv",
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_43.0.csv",
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv",
-"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-satcomp2023-1.9.5.csv",
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_43.0.csv"
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv",
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-satcomp2023-1.9.5.csv",
+#     "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_43.0.csv"
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/kissat-satcomp2023-3.1.1.csv",
 ])
 
@@ -80,7 +84,7 @@ def parse_table(reference_df, exp_name):
 
     if "cadical" in exp_name:
         output_df['status'] = output_df['status'].replace({'UNDEFINED': 'UNDEF', 'UNSATISFIABLE': 'UNSAT', 'SATISFIABLE': 'SAT'})
-    elif "interleave" in exp_name:
+    elif "int" in exp_name:
         output_df['status'] = output_df['status'].replace({'SLURM_TIME_LIMIT': 'UNDEF', 'UNDEFINED/UNSAT': 'UNSAT', 'SAT': 'SAT'})
     else:
         raise ValueError(exp_name)
@@ -100,6 +104,20 @@ def join_and_check_duplicates(reference_name, df1, experiments_name, df2, on_col
 
     return merged_df
 
+def map_value_to(name):
+    if "cadical" in name:
+        cadical, _,  version = name.split("-")
+        name = f"{cadical}-{version}"
+    elif "interleave_v2" in name:
+        interleave, v, _, version = name.split("_")
+        name = f"int-{version}"
+    elif "interleave" in name:
+        interleave, _, version = name.split("_")
+        name = f"int-{version}"
+    else:
+        raise ValueError(f"Unexpected solver: {name}")
+    return name
+
 for reference in references:
     ref_name = reference.stem
     ref_df = parse_table(pd.read_csv(reference), ref_name)
@@ -116,7 +134,10 @@ for reference in references:
     # portfolio_with_cadical = [col for col in ref_df.columns if (col != 'file_name')]
     df = ref_df[column_order]
     # df.loc[:, 'VBS'] = df[portfolio].min(axis=1)
-    # df['interleave_VBS'] = df[portfolio].min(axis=1)
+    df['VBS-interleave'] = df[portfolio].min(axis=1)
+
     df['VBS'] = df[portfolio_with_cadical].min(axis=1)
+    df = df.rename(columns={column: map_value_to(column)
+                            for column in ref_df.columns if column not in set(['file_name', 'VBS'])})
     df.to_csv('ref_df.csv', index=False)
     # df[['file_name', 'interleave_VBS']].to_csv('interleave_VBS.csv', index=False)

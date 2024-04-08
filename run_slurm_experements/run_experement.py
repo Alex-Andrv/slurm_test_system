@@ -99,7 +99,7 @@ def run_scripts(scripts, time_limit_s, slurm_log, cpus=1, mem=None, node="orthru
             job_id = match.group(1)
         else:
             raise Exception("Job ID not found in the output.")
-        jobs.append((job_id, scripts_path, cpus, mem, time_limit_s))
+        jobs.append((job_id, scripts_path, cpus, mem[file_name], time_limit_s))
     return jobs
 
 
