@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 references = map(Path, [
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical.csv",
 
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-1.9.3.csv"
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/cadical-satcomp2023-1.9.5.csv"
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_109.csv",
 ])
 
 statistics = map(Path, [
@@ -24,7 +25,7 @@ statistics = map(Path, [
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_21.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_22.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_23.0.csv",
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_24.0.csv",
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_24.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_25.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_26.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_VBS.csv",
@@ -32,10 +33,16 @@ statistics = map(Path, [
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_25.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_26.0.csv",
     # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_27.0.csv",
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_cadical-1.9.3.csv",
-    "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_interleave_24.0.csv",
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_cadical-1.9.3.csv",
+    # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/sbva_interleave_24.0.csv",
+
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_107.csv",
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_108.csv",
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_113.csv",
+# "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_114.csv",
 
 
+"/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave_v2_2023_109a.csv",
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_34.0.csv",
 # "/nfs/home/aandreev/slurm_test_system/run_slurm_experements/statistics/interleave2023_24.0.csv"
 ])
@@ -69,7 +76,7 @@ for reference in references:
         df = scatter_df.drop(['task_name'], axis=1)
         first, second = df.columns
         # Генерация scatter plot с логарифмической шкалой по осям
-        inch = (1.65, 1.65)
+        inch = (5, 5)
         plt.figure(figsize=inch, dpi=300)
         plt.scatter(df[first], df[second], s=3, zorder=2)
 
@@ -80,13 +87,13 @@ for reference in references:
                  markersize=0.1, linewidth=1, dashes=(2, 2), zorder=1)
 
 
-        plt.xlabel(f'Baseline time (CaDiCaL 1.9.3), s', fontsize=5.8)
+        plt.xlabel(f'Baseline time (CaDiCaL 1.9.5), s', fontsize=5.8)
         if 'VBS' in second:
             # plt.title(f'{second} configuration', fontsize=8)
             plt.ylabel(f"Time ({second}), s", fontsize=5.8)
         else:
             # plt.title(f'{second[:-2]} configuration', fontsize=8)
-            plt.ylabel(f"Time ({second[:-2]}), s", fontsize=5.8)
+            plt.ylabel(f"Time ({second}), s", fontsize=5.8)
 
         plt.tick_params(axis='both', which='both', labelsize=3.5)
         plt.grid(True, linewidth=0.2)
